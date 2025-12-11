@@ -21,8 +21,8 @@ class Vector:
         return self*(1/l)
 
 ELEMENTS = {"H":1,"He":2,"Li":3,"Be":4,"C":6,"N":7,"O":8}
-COLORS = {"H":(255,50,50),"He":(200,200,255),"Li":(204,128,255),"Be":(194,255,0),
-          "C":(50,255,50),"N":(0,0,255),"O":(50,50,255)}
+COLORS = {"H":(255,255,255),"He":(200,200,255),"Li":(204,128,255),"Be":(194,255,0),
+          "C":(0,0,0),"N":(0,0,255),"O":(255,0,0)}
 
 class Nucleus:
     def __init__(self, pos, symbol):
@@ -45,7 +45,7 @@ class Electron:
         a0 = a0_pixels * shell_multiplier #Bohr radius
         r_max = 5*a0 #if more than 5*a0, probability is negligible at a far distance
         proposal_scale = a0/2
-        while True:
+        while True: 
             r = -proposal_scale*math.log(random.random()) #Electron prob: Very high near nucleus, Drops fast with distance
             if r > r_max: continue
             accept_prob = (r/r_max)**2 #radial probability density function
@@ -114,9 +114,9 @@ pg.init()
 screen = pg.display.set_mode((1100, 700))
 clock = pg.time.Clock()
 
-nucleus, electrons, a0 = create_atom("H", Vector(550, 350))
-nucleus2, electrons2, a02 = create_atom("C", Vector(700, 450))
-nucleus3, electrons3, a03 = create_atom("O", Vector(400, 450))
+nucleus, electrons, a0 = create_atom("H", Vector(550, 250))
+nucleus2, electrons2, a02 = create_atom("C", Vector(700, 350))
+nucleus3, electrons3, a03 = create_atom("O", Vector(400, 350))
 
 atoms = [nucleus, nucleus2, nucleus3]
 electronsA = [electrons, electrons2, electrons3]
@@ -134,7 +134,7 @@ while running:
         for e in el:
             e.update(radius[electronsA.index(el)])
 
-    screen.fill((0, 0, 0))
+    screen.fill((99,99,99))
 
     #nucleo
     for atom in atoms:
