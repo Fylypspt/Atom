@@ -87,14 +87,14 @@ def electron_shells_for_Z(Z): #how many electrons go in each nivel
 
 def create_atom(symbol, pos):
     nucleus = Nucleus(pos, symbol)
-    a0_pixels = 40.0 / max(1, ELEMENTS[symbol])
+    a0_pixels = 40.0 / max(1, ELEMENTS[symbol]) #Bohr radius in pixels, scaled inversely with Z
     shells = electron_shells_for_Z(ELEMENTS[symbol])
     electrons = []
     orbitals_sequence = ["s", "s", "p", "p", "p", "d", "d", "d"]
     for shell_index, count in enumerate(shells, start=1):
         for i in range(count):
             orbital = orbitals_sequence[i] if i < len(orbitals_sequence) else "s"
-            electrons.append(Electron(nucleus, shell_index, orbital))
+            electrons.append(Electron(nucleus, shell_index, orbital)) #create electron, assign to nucleus
     nucleus.electrons = electrons
     return nucleus, electrons, a0_pixels
 
@@ -113,6 +113,7 @@ while running:
         if event.type == pg.QUIT:
             running = False
 
+    #update electrons
     for el in electrons:
         el.update(a0)
 
@@ -124,17 +125,20 @@ while running:
 
     screen.fill((0, 0, 0))
 
-    pg.draw.circle(screen, (255, 50, 50), (int(nucleus.pos.x), int(nucleus.pos.y)), 10) #atom
-    pg.draw.circle(screen, (50, 255, 50), (int(nucleus2.pos.x), int(nucleus2.pos.y)), 10) #atom 2
-    pg.draw.circle(screen, (50, 50, 255), (int(nucleus3.pos.x), int(nucleus3.pos.y)), 10) #atom 3
+    #nucleo
+    pg.draw.circle(screen, (255, 50, 50), (int(nucleus.pos.x), int(nucleus.pos.y)), 10) 
+    pg.draw.circle(screen, (50, 255, 50), (int(nucleus2.pos.x), int(nucleus2.pos.y)), 10)
+    pg.draw.circle(screen, (50, 50, 255), (int(nucleus3.pos.x), int(nucleus3.pos.y)), 10)
 
-    font = pg.font.SysFont(None, 18) #element symbol
-
+    font = pg.font.SysFont(None, 18)
+    
+    #element symbol
     txt = font.render(nucleus.symbol, True, (255, 255, 255))
     txt2 = font.render(nucleus2.symbol, True, (255, 255, 255))
     txt3 = font.render(nucleus3.symbol, True, (255, 255, 255))
 
-    screen.blit(txt, (int(nucleus.pos.x) + 12, int(nucleus.pos.y) - 10)) # electrons and trails
+    # electrons and trails
+    screen.blit(txt, (int(nucleus.pos.x) + 12, int(nucleus.pos.y) - 10)) 
     screen.blit(txt2, (int(nucleus2.pos.x) + 12, int(nucleus2.pos.y) - 10))
     screen.blit(txt3, (int(nucleus3.pos.x) + 12, int(nucleus3.pos.y) - 10))
 
