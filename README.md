@@ -1,0 +1,2 @@
+This program basically simulates and visualizes atoms with electrons orbiting around the nucleus. 
+#Each electron's position is updated based on probabilistic sampling to mimic quantum behavior, and their trails are drawn to show their paths over time.
