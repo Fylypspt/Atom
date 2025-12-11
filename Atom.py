@@ -21,8 +21,9 @@ class Vector:
         return self*(1/l)
 
 ELEMENTS = {"H":1,"He":2,"Li":3,"Be":4,"C":6,"N":7,"O":8}
+
 COLORS = {"H":(255,255,255),"He":(200,200,255),"Li":(204,128,255),"Be":(194,255,0),
-          "C":(0,0,0),"N":(0,0,255),"O":(255,0,0)}
+          "C":(255,50,0),"N":(0,0,255),"O":(255,0,0)}
 
 class Nucleus:
     def __init__(self, pos, symbol):
@@ -61,10 +62,13 @@ class Electron:
         theta, phi = self.sample_angle() #Get random direction
         
         #Visual approximation of orbital shapes
-        if self.orbital == "p": 
-            theta += math.pi/2; phi += math.pi/8
+        if self.orbital == "p":
+            if random.random() > abs(math.cos(theta)):
+                return self.update(a0_pixels)   # resample
+
         if self.orbital == "d": 
-            theta += math.pi/4; phi += math.pi/4
+            if random.random() > (math.sin(theta)**2 * (math.cos(2*phi)**2)):
+                return self.update(a0_pixels)
 
         #Convert spherical to cartesian
         x = r*math.sin(theta)*math.cos(phi)
@@ -79,9 +83,14 @@ class Electron:
     def draw(self, screen):
          for i, pos in enumerate(self.trail):
                 alpha = max(30, 255 - i * 25)
-                color = (alpha, alpha, alpha)
-                pg.draw.circle(screen, color, (int(pos[0]), int(pos[1])), 2)
-        
+                base_color = (100, 200, 255)  # electron blue
+                r = base_color[0] * (alpha/255)
+                g = base_color[1] * (alpha/255)
+                b = base_color[2] * (alpha/255)
+                color = (int(r), int(g), int(b))
+
+                size = max(1, 3 - abs(self.pos.z) * 0.01)
+                pg.draw.circle(screen, color, (int(pos[0]), int(pos[1])), int(size))        
 
 def electron_shells_for_Z(Z): #how many electrons go in each nivel
     shells = []
@@ -98,14 +107,21 @@ def electron_shells_for_Z(Z): #how many electrons go in each nivel
 
 def create_atom(symbol, pos):
     nucleus = Nucleus(pos, symbol)
-    a0_pixels = 40.0 / max(1, ELEMENTS[symbol]) #Bohr radius in pixels, scaled inversely with Z
+    # Bohr radius scaling
+    a0_pixels = 25.0 / math.sqrt(max(1, ELEMENTS[symbol]))
+
     shells = electron_shells_for_Z(ELEMENTS[symbol])
     electrons = []
-    orbitals_sequence = ["s", "s", "p", "p", "p", "d", "d", "d"]
     for shell_index, count in enumerate(shells, start=1):
+        if shell_index == 1:
+            orbitals = ["s"]
+        elif shell_index == 2:
+            orbitals = ["s", "p"]
+        else:
+            orbitals = ["s", "p", "d"]
         for i in range(count):
-            orbital = orbitals_sequence[i] if i < len(orbitals_sequence) else "s"
-            electrons.append(Electron(nucleus, shell_index, orbital)) #create electron, assign to nucleus
+            orbital = orbitals[i % len(orbitals)]
+            electrons.append(Electron(nucleus, shell_index, orbital))
     nucleus.electrons = electrons
     return nucleus, electrons, a0_pixels
 
@@ -115,7 +131,7 @@ screen = pg.display.set_mode((1100, 700))
 clock = pg.time.Clock()
 
 nucleus, electrons, a0 = create_atom("H", Vector(550, 250))
-nucleus2, electrons2, a02 = create_atom("C", Vector(700, 350))
+nucleus2, electrons2, a02 = create_atom("Be", Vector(700, 350))
 nucleus3, electrons3, a03 = create_atom("O", Vector(400, 350))
 
 atoms = [nucleus, nucleus2, nucleus3]
@@ -130,11 +146,12 @@ while running:
             running = False
 
     #update electrons
-    for el in electronsA:
-        for e in el:
-            e.update(radius[electronsA.index(el)])
+    for shell_index, el_list in enumerate(electronsA):
+        r = radius[shell_index]
+        for e in el_list:
+            e.update(r)
 
-    screen.fill((99,99,99))
+    screen.fill((0,0,0))
 
     #nucleo
     for atom in atoms:
