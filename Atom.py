@@ -21,6 +21,8 @@ class Vector:
         return self*(1/l)
 
 ELEMENTS = {"H":1,"He":2,"Li":3,"Be":4,"C":6,"N":7,"O":8}
+COLORS = {"H":(255,50,50),"He":(200,200,255),"Li":(204,128,255),"Be":(194,255,0),
+          "C":(50,255,50),"N":(0,0,255),"O":(50,50,255)}
 
 class Nucleus:
     def __init__(self, pos, symbol):
@@ -28,6 +30,8 @@ class Nucleus:
         self.symbol = symbol
         self.Z = ELEMENTS[symbol]
         self.electrons = []
+    def draw(self, screen):
+        pg.draw.circle(screen, COLORS[self.symbol], (int(self.pos.x), int(self.pos.y)), 10)
 
 class Electron:
     def __init__(self, nucleus, shell_index=1, orbital="s"):
@@ -72,6 +76,13 @@ class Electron:
         if len(self.trail) > 10: 
             self.trail.pop(0)
 
+    def draw(self, screen):
+         for i, pos in enumerate(self.trail):
+                alpha = max(30, 255 - i * 25)
+                color = (alpha, alpha, alpha)
+                pg.draw.circle(screen, color, (int(pos[0]), int(pos[1])), 2)
+        
+
 def electron_shells_for_Z(Z): #how many electrons go in each nivel
     shells = []
     remaining = Z
@@ -98,6 +109,7 @@ def create_atom(symbol, pos):
     nucleus.electrons = electrons
     return nucleus, electrons, a0_pixels
 
+
 pg.init()
 screen = pg.display.set_mode((1100, 700))
 clock = pg.time.Clock()
@@ -105,6 +117,10 @@ clock = pg.time.Clock()
 nucleus, electrons, a0 = create_atom("H", Vector(550, 350))
 nucleus2, electrons2, a02 = create_atom("C", Vector(700, 450))
 nucleus3, electrons3, a03 = create_atom("O", Vector(400, 450))
+
+atoms = [nucleus, nucleus2, nucleus3]
+electronsA = [electrons, electrons2, electrons3]
+radius = [a0, a02, a03]
 
 running = True
 while running:
@@ -114,51 +130,26 @@ while running:
             running = False
 
     #update electrons
-    for el in electrons:
-        el.update(a0)
-
-    for el in electrons2:
-        el.update(a02)
-
-    for el in electrons3:
-        el.update(a03)
+    for el in electronsA:
+        for e in el:
+            e.update(radius[electronsA.index(el)])
 
     screen.fill((0, 0, 0))
 
     #nucleo
-    pg.draw.circle(screen, (255, 50, 50), (int(nucleus.pos.x), int(nucleus.pos.y)), 10) 
-    pg.draw.circle(screen, (50, 255, 50), (int(nucleus2.pos.x), int(nucleus2.pos.y)), 10)
-    pg.draw.circle(screen, (50, 50, 255), (int(nucleus3.pos.x), int(nucleus3.pos.y)), 10)
+    for atom in atoms:
+        atom.draw(screen)
 
     font = pg.font.SysFont(None, 18)
     
-    #element symbol
-    txt = font.render(nucleus.symbol, True, (255, 255, 255))
-    txt2 = font.render(nucleus2.symbol, True, (255, 255, 255))
-    txt3 = font.render(nucleus3.symbol, True, (255, 255, 255))
+    #element symbol | electrons and trails
+    for Nucleus in atoms:
+        txt = font.render(Nucleus.symbol, True, (255, 255, 255))
+        screen.blit(txt, (int(Nucleus.pos.x) + 12, int(Nucleus.pos.y) - 10))
 
-    # electrons and trails
-    screen.blit(txt, (int(nucleus.pos.x) + 12, int(nucleus.pos.y) - 10)) 
-    screen.blit(txt2, (int(nucleus2.pos.x) + 12, int(nucleus2.pos.y) - 10))
-    screen.blit(txt3, (int(nucleus3.pos.x) + 12, int(nucleus3.pos.y) - 10))
-
-    for el in electrons:
-        for i, pos in enumerate(el.trail):
-            alpha = max(30, 255 - i * 25)
-            color = (alpha, alpha, alpha)
-            pg.draw.circle(screen, color, (int(pos[0]), int(pos[1])), 2)
-
-    for el in electrons2:
-        for i, pos in enumerate(el.trail):
-            alpha = max(30, 255 - i * 25)
-            color = (alpha, alpha, alpha)
-            pg.draw.circle(screen, color, (int(pos[0]), int(pos[1])), 2)
-
-    for el in electrons3:
-        for i, pos in enumerate(el.trail):
-            alpha = max(30, 255 - i * 25)
-            color = (alpha, alpha, alpha)
-            pg.draw.circle(screen, color, (int(pos[0]), int(pos[1])), 2)
+    for elM in electronsA:
+        for el in elM:
+            el.draw(screen)
 
     pg.display.flip()
 
