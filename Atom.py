@@ -125,7 +125,6 @@ def create_atom(symbol, pos):
     nucleus.electrons = electrons
     return nucleus, electrons, a0_pixels
 
-
 pg.init()
 screen = pg.display.set_mode((1100, 700))
 clock = pg.time.Clock()
